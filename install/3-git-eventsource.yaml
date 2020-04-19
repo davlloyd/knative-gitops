@@ -1,0 +1,21 @@
+apiVersion: sources.eventing.knative.dev/v1alpha1
+kind: GitHubSource
+metadata:
+  name: cmpgithubsource
+spec:
+  eventTypes:
+    - page_build
+    - push
+  ownerAndRepository: davlloyd/knative-cmp
+  accessToken:
+    secretKeyRef:
+      name: githubsecret
+      key: accessToken
+  secretToken:
+    secretKeyRef:
+      name: githubsecret
+      key: secretToken
+  sink:
+    apiVersion: serving.knative.dev/v1alpha1
+    kind: Service
+    name: github-cmp-parser
