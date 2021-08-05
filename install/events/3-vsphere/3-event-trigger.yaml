@@ -1,0 +1,16 @@
+apiVersion: eventing.knative.dev/v1
+kind: Trigger
+metadata:
+  name: event-display
+  namespace: ${WORKLOAD_NAMESPACE}
+spec:
+  broker: default
+  filter:
+    attributes:
+      type: com.vmware.vsphere.VmCreatedEvent
+  subscriber:
+    ref:
+     apiVersion: serving.knative.dev/v1
+     kind: Service
+     name: event-display
+     namespace: ${WORKLOAD_NAMESPACE}

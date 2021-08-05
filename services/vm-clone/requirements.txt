@@ -1,0 +1,8 @@
+certifi
+chardet
+idna
+pyvmomi
+six
+urllib3
+requests
+flask

@@ -1,0 +1,27 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: vmclone
+spec:
+  template:
+    spec:
+      containers:
+        - image: docker.io/davlloyd/vm-clone:1
+          env:
+            - name: VC_ACCOUNT
+              valueFrom:
+                secretKeyRef:
+                  name: vsphere-cred
+                  key: username
+            - name: VC_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: vsphere-cred
+                  key: password
+          volumeMounts:
+            - name: vsphere-cred
+              mountPath: /var/secret
+      volumes:
+        - name: vsphere-cred
+          secret:
+            secretName: vsphere-credentials
