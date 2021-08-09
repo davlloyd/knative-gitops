@@ -11,17 +11,10 @@ spec:
             - name: VC_ACCOUNT
               valueFrom:
                 secretKeyRef:
-                  name: vsphere-cred
+                  name: vsphere-credentials
                   key: username
             - name: VC_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: vsphere-cred
+                  name: vsphere-credentials
                   key: password
-          volumeMounts:
-            - name: vsphere-cred
-              mountPath: /var/secret
-      volumes:
-        - name: vsphere-cred
-          secret:
-            secretName: vsphere-credentials

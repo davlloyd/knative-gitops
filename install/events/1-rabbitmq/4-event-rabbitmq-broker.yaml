@@ -2,11 +2,12 @@ apiVersion: eventing.knative.dev/v1
 kind: Broker
 metadata:
   name: default
+  #namespace: ${WORKLOAD_NAMESPACE}
   annotations:
     eventing.knative.dev/broker.class: RabbitMQBroker
 spec:
   config:
     apiVersion: rabbitmq.com/v1beta1
     kind: RabbitmqCluster
-    name: my-rabbit
-    namespace: ${WORKLOAD_NAMESPACE}
+    name: local-rabbit
+    #namespace: ${WORKLOAD_NAMESPACE}
