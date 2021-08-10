@@ -26,6 +26,19 @@ def get_obj(content, vimtype, name):
             break
     return obj
 
+def eval_values():
+    app.logger.warning("Request Data:")
+    app.logger.warning(request.data)
+
+    app.logger.warning("Environment Variables:")
+    for k, v in sorted(os.environ.items()):
+        print(k+':', v)
+
+    app.logger.warning("Request JSON payload:")
+    data = request.get_json()
+    app.logger.warning(data)
+    return True
+
 
 def clone_vm(
         content, template, vm_name, si,
@@ -66,6 +79,10 @@ def construct():
     """
     Let this thing fly
     """
+
+    if eval_values():
+        app.logger.warning("Data Evaluated successfully:")
+
     data = request.get_json()
     host = data.get("host")
     port = data.get("port", 443)

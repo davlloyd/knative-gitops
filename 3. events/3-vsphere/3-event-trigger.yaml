@@ -4,9 +4,9 @@ metadata:
   name: event-display
 spec:
   broker: default
-  #filter:
-  #  attributes:
-  #    type: com.vmware.vsphere.VmCreatedEvent
+  filter:
+    attributes:
+      type: com.vmware.vsphere.VmCreatedEvent
   subscriber:
     ref:
      apiVersion: serving.knative.dev/v1

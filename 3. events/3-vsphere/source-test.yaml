@@ -1,0 +1,22 @@
+apiVersion: sources.tanzu.vmware.com/v1alpha1
+kind: VSphereSource
+metadata:
+  name: test-source
+spec:
+  # Where to fetch the events, and how to auth.
+  address: https://vcenter.home.local
+  skipTLSVerify: true
+  secretRef:
+    name: vsphere-credentials
+
+  # Where to send the events.
+  sink:
+    uri: http://where.to.send.stuff
+
+  # Adjust checkpointing and event replay behavior
+  checkpointConfig:
+    maxAgeSeconds: 300
+    periodSeconds: 10
+
+  # Set the CloudEvent data encoding scheme to JSON
+  payloadEncoding: application/json

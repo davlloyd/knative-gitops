@@ -6,8 +6,21 @@ from flask import Flask, request
 
 app = Flask(__name__)
 
+def eval_values():
+    app.logger.warning("Environment Variables:")
+    for k, v in sorted(os.environ.items()):
+        app.logger.warning(k+':', v)
+
+    app.logger.warning("Request JSON payload:")
+    data = request.get_json()
+    app.logger.warning(data)
+    return True
+
 @app.route('/', methods=['POST'])
 def construct():
+    eval_values()
+    app.logger.warning("Git Push event being processed")
+    app.logger.warning(request.data)
     clone_url = "http://vmclone.default.faas.home.local"
     host = "vcenter.home.local"
     template = "ubuntu-20-template"
