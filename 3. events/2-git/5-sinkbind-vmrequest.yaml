@@ -1,0 +1,14 @@
+apiVersion: sources.knative.dev/v1
+kind: SinkBinding
+metadata:
+  name: bind-vmrequest
+spec:
+  subject:
+    apiVersion: serving.knative.dev/v1
+    kind: Service
+    name: vmrequest
+  sink:
+    ref:
+      apiVersion: serving.knative.dev/v1
+      kind: Service
+      name: vmclone

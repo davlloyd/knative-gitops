@@ -9,4 +9,4 @@ spec:
         autoscaling.knative.dev/minScale: "1"
     spec:
       containers:
-        - image: docker.io/davlloyd/git-vmrequest:4
+        - image: docker.io/davlloyd/git-vmrequest:10

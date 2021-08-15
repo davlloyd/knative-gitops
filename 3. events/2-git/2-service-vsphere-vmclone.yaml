@@ -9,7 +9,7 @@ spec:
         autoscaling.knative.dev/minScale: "1"
     spec:
       containers:
-        - image: docker.io/davlloyd/vm-clone:2
+        - image: docker.io/davlloyd/vm-clone:5
           env:
             - name: VC_ACCOUNT
               valueFrom:

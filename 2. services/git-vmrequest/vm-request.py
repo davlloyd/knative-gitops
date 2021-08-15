@@ -7,23 +7,68 @@ from flask import Flask, request
 app = Flask(__name__)
 
 def eval_values():
-    app.logger.warning("Environment Variables:")
+    app.logger.info("Environment Variables:")
     for k, v in sorted(os.environ.items()):
-        app.logger.warning(k+':', v)
+        try:
+            val = str(v)
+        except:
+            val = "unknown"
+        logval = k + ':' + val
+        app.logger.info(logval)
 
-    app.logger.warning("Request JSON payload:")
+    app.logger.info("Request JSON payload:")
     data = request.get_json()
-    app.logger.warning(data)
+    app.logger.info(data)
     return True
 
-@app.route('/', methods=['POST'])
-def construct():
-    eval_values()
-    app.logger.warning("Git Push event being processed")
-    app.logger.warning(request.data)
-    clone_url = "http://vmclone.default.faas.home.local"
+def buildrequest(entry):
+    app.logger.info("Building request entry")
     host = "vcenter.home.local"
     template = "ubuntu-20-template"
+
+    name = entry["name"]
+    if "template" in entry:
+        sourcetemplate = entry["template"]
+    else:
+        sourcetemplate = template
+    if "targethost" in entry:
+        targethost = entry["targethost"]
+    else:
+        targethost = host
+    if "dc" in entry:
+        targetdc = entry["dc"]
+    if "vmfolder" in entry:
+        targetfolder = entry["vmfolder"]
+    if "resourcepool" in entry:
+        respool = entry["resourcepool"]
+    if "poweron" in entry:
+        poweron = entry["poweron"]
+    else:
+        poweron = False
+
+    clone_data = {
+        'host': targethost, 
+        'name': name, 
+        'template': sourcetemplate,
+        'datacenterName': targetdc,
+        'vmFolder': targetfolder,
+        'resourcePool': respool,
+        'powerOn': poweron
+        }
+    
+    app.logger.info(clone_data)
+
+    return clone_data
+
+
+@app.route('/', methods=['POST'])
+def main():
+    app.logger.info("Git Push event being processed")
+    eval_values()
+
+    # URL populated by associated Sink binding with vmclone service
+    clone_url = os.environ["K_SINK"]
+    app.logger.info(clone_url)
     
     data = json.loads(request.data)
     repopath = data["repository"]["homepage"]
@@ -37,36 +82,7 @@ def construct():
                 response = requests.get(file_url)
                 if response.status_code == 200:
                     entry = response.json()
-
-                    name = entry["name"]
-                    if "template" in entry:
-                        sourcetemplate = entry["template"]
-                    else:
-                        sourcetemplate = template
-                    if "targethost" in entry:
-                        targethost = entry["targethost"]
-                    else:
-                        targethost = host
-                    if "dc" in entry:
-                        targetdc = entry["dc"]
-                    if "vmfolder" in entry:
-                        targetfolder = entry["vmfolder"]
-                    if "resourcepool" in entry:
-                        respool = entry["resourcepool"]
-                    if "poweron" in entry:
-                        poweron = entry["poweron"]
-                    else:
-                        poweron = False
-
-                    clone_data = {
-                        'host': targethost, 
-                        'name': name, 
-                        'template': sourcetemplate,
-                        'datacenterName': targetdc,
-                        'vmFolder': targetfolder,
-                        'resourcePool': respool,
-                        'powerOn': poweron
-                        }
+                    clone_data=buildrequest(entry)
 
                     response = requests.post(
                         clone_url, 
