@@ -21,7 +21,7 @@ def eval_values():
     app.logger.info(data)
     return True
 
-def buildrequest(entry):
+def buildrequest(entry, fileurl):
     app.logger.info("Building request entry")
     host = "vcenter.home.local"
     template = "ubuntu-20-template"
@@ -53,7 +53,8 @@ def buildrequest(entry):
         'datacenterName': targetdc,
         'vmFolder': targetfolder,
         'resourcePool': respool,
-        'powerOn': poweron
+        'powerOn': poweron,
+        'gitPath': fileurl
         }
     
     app.logger.info(clone_data)
@@ -79,10 +80,12 @@ def main():
         for filename in filerequests:
             if "template" not in filename.lower():
                 file_url = '{0}/-/raw/main/{1}'.format(repopath, filename)
+                app.logger.info("Reading request file")
+                app.logger.info(file_url)
                 response = requests.get(file_url)
                 if response.status_code == 200:
                     entry = response.json()
-                    clone_data=buildrequest(entry)
+                    clone_data=buildrequest(entry, file_url)
 
                     response = requests.post(
                         clone_url, 
@@ -94,9 +97,9 @@ def main():
                 else:
                     print(file_url)
     else:
-        return {"status": "no new requests"}
+        return {"status": "no new requests", "message": "Nothing to do"}
 
-    return {"status": "done", "data": vmlist}
+    return {"status": "done", "message": vmlist}
 
 if __name__ == "__main__":
     app.run(debug=True,host='0.0.0.0',port=int(os.environ.get('PORT', 8080)))

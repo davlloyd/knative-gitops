@@ -8,3 +8,4 @@ So far we have done this with Dispatch and OpenFaaS. Now to do it with knative. 
 - knative is operational (2 installs, K8s with kubeadm and one with PKS)
 - knative monitoring is configured
 - Custom domain is created and functional
+

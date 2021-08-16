@@ -1,0 +1,18 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: slacknotify
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/minScale: "1"
+    spec:
+      containers:
+        - image: docker.io/davlloyd/slack-notify:3
+          env:
+            - name: SLACK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: slack-hook
+                  key: slack_webhook

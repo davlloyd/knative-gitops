@@ -8,6 +8,18 @@ from flask import Flask, request
 
 app = Flask(__name__)
 
+def wait_for_task(task):
+    """ wait for a vCenter task to finish """
+    task_done = False
+    while not task_done:
+        if task.info.state == 'success':
+            return task.info.result
+
+        if task.info.state == 'error':
+            app.logger.error("Clone operation error")
+            app.logger.error(task.info.error)
+            task_done = True
+
 def get_obj(content, vimtype, name):
     """
     Return an object by name, if name is None the
@@ -45,7 +57,7 @@ def eval_values():
 def clone_vm(
         content, template, vm_name, si,
         datacenter_name, vm_folder, host_name,
-        resource_pool, power_on):
+        resource_pool, power_on, git_path):
     """
     Clone a VM from a template/VM, datacenter_name, vm_folder, datastore_name
     cluster_name, resource_pool, and power_on are all optional.
@@ -62,18 +74,27 @@ def clone_vm(
     host = get_obj(content, [vim.HostSystem], host_name)
     resource_pool = get_obj(content, [vim.ResourcePool], resource_pool)
 
-    vmconf = vim.vm.ConfigSpec()
-
+    app.logger.info("Create RelocateSpec")
     relospec = vim.vm.RelocateSpec()
     relospec.datastore = template.datastore[0]
     relospec.pool = resource_pool
     relospec.host = host
 
+    app.logger.info("Create ConfigSpec")
+    vmconf = vim.vm.ConfigSpec()
+    annotation = "git:" + git_path
+    vmconf.annotation = annotation
+
+    app.logger.info("Create CloneSpec")
     clonespec = vim.vm.CloneSpec()
     clonespec.location = relospec
     clonespec.powerOn = power_on
+    clonespec.config = vmconf
 
+    app.logger.info("Commencing clone operation")
     task = template.Clone(folder=destfolder, name=vm_name, spec=clonespec)
+    wait_for_task(task)
+    app.logger.info("Clone operation complete")
     return clonespec, task.info.state
 
 @app.route('/', methods=['POST'])
@@ -104,9 +125,11 @@ def construct():
     vm_folder = data.get("vmFolder")
     resource_pool = data.get("resourcePool")
     power_on = data.get("powerOn", False)
+    git_path = data.get("gitPath", "unset")
 
     # connect this thing
     context = None
+    app.logger.info("Connecting to vCenter")
     if hasattr(ssl, '_create_unverified_context'):
         context = ssl._create_unverified_context()
     si = SmartConnect(
@@ -118,6 +141,7 @@ def construct():
     try:
         comment = None
         content = si.RetrieveContent()
+        app.logger.info("Retrieving template")
         template = get_obj(content, [vim.VirtualMachine], template_name)
         state = "unknown"
         clonespec = None
@@ -126,8 +150,9 @@ def construct():
                 content, template, name, si,
                 dc_name, vm_folder,
                 host_name, resource_pool,
-                power_on)
+                power_on, git_path)
         else:
+            app.logger.info("Template not found")
             state = "error"
             comment = "template not found"
         return {
